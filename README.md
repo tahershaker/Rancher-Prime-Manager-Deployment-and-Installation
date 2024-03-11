@@ -12,7 +12,18 @@ This repo is created to provide the reader all the required information on deplo
 
 ---
 
+## Overview
 
+Rancher Server - or - Rancher Manager (same but different namings) is a kubernetes and container management platform deployed on a supported kubernetes cluster. Rancher Manager support the deployment over several kubernetes distribution such as RKE, RKE2, K3S, EKS, AKS, GKE. Rancher in general is a 100% Open Source solution that give you the ability to run the solution on your environment freely without any vendor locking. there are 3 different flavours of Rancher - Rancher (Community), Rancher Prime, and Rancher Hosted. All of the different flavours of Rancher have the same exact source code letting all different flavours provide the same core features. With **Rancher Prime** and **Rancher Hosted** additional services and support are provided. For a detailed comparison, please refer to [this link](https://www.rancher.com/products/rancher-platform)
+
+---
+
+<p align="center">
+    <img src="Images/Comparison.png">
+</p>
+
+---
 
 
 ## References:
+- [Rancher Prime Platform](https://www.rancher.com/products/rancher-platform)
