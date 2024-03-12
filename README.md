@@ -49,7 +49,7 @@ In each of the mentioned options above, it is expected to have a direct internet
 
 Rancher Manager is deployed as a container on top of a kubernetes cluster. For the best performance and security, it is recommended to have a dedicated Kubernetes cluster for the Rancher management server. Running user workloads on this cluster is not advised. Also, a high-availability Kubernetes cluster (3 Master Nodes, 3 Worker Nodes) is recommended for production.
 
-The majority of Rancher 2.x software runs on the Rancher Server/Manager. Rancher Server/Manager includes all the software components used to manage the entire Rancher deployment. The Rancher manager will be deployed on a dedicated kubernetes cluster (we can call it the management cluster) and then other kubernetes cluster can be provisioned from or imported to Rancher Manager. Each downstream kubernetes cluster (Cluster provisioned by or imported to Rancher) will have a cluster agent running inside the cluster which will allow the communication between the Rancher Manager and the downstream cluster. 
+The majority of Rancher 2.x software runs on the Rancher Server/Manager. Rancher Server/Manager includes all the software components used to manage the entire Rancher deployment. The Rancher manager will be deployed on a dedicated kubernetes cluster (upstream cluster) and then other kubernetes cluster can be provisioned from or imported to Rancher Manager. Each downstream kubernetes cluster (Cluster provisioned by or imported to Rancher) will have a cluster agent running inside the cluster which will allow the communication between the Rancher Manager and the downstream cluster. 
 
 The figure below illustrates the high-level architecture of Rancher 2.x. The figure depicts a Rancher Server installation that manages two downstream Kubernetes clusters: one created by RKE and another created by Amazon EKS (Elastic Kubernetes Service).
 
@@ -94,8 +94,9 @@ Please Note: If you install Rancher on a hardened Kubernetes cluster, check the 
 
 To deploy Rancher on a kubernetes cluster, The following table lists a general minimum CPU and memory requirements for each node in the upstream cluster. This table is based on utilizing RKE, RKE2, K3S, and Hosted Kubernetes (EKS, AKS, GKS). For more info, please refer to [this link](https://ranchermanager.docs.rancher.com/getting-started/installation-and-upgrade/installation-requirements#hardware-requirements)
 
-| Managed Infrastructure Size | Maximum Number of Clusters | Maximum Number of Nodes | vCPUs | RAM |
-|:--------------------------: | :------------------------: | :---------------------: | :---: | :-: |
+| Managed Infrastructure Size | Maximum Number of Clusters | Maximum Number of Nodes | vCPUs            | RAM              |
+|:--------------------------: | :------------------------: | :---------------------: | :---:            | :-:              |
+| <img width=400/>            | <img width=400/>           | <img width=400/>        | <img width=400/> | <img width=600/> |
 | Small	| 150 | 1500 | 4 | 16 GB |
 | Medium | 300 | 3000 | 8 | 32 GB |
 | Large | 500 | 5000 | 16 | 64 GB |
@@ -118,6 +119,98 @@ Rancher performance depends on etcd in the cluster performance. To ensure optima
 
 ---
 
+### Ingress - Upstream Cluster - Management Cluster
+
+Each node in the Kubernetes cluster that Rancher is installed on should run an Ingress. The Ingress should be deployed as DaemonSet to ensure your load balancer can successfully route traffic to all nodes. For RKE, RKE2 and K3s installations, you don't have to install the Ingress manually because it is installed by default.
+
+For hosted Kubernetes clusters (EKS, GKE, AKS), you will need to set up the ingress.
+- Amazon EKS: For details on how to install Rancher on Amazon EKS, including how to install an ingress so that the Rancher server can be accessed, refer to [this page](https://ranchermanager.docs.rancher.com/getting-started/installation-and-upgrade/install-upgrade-on-a-kubernetes-cluster/rancher-on-amazon-eks).
+- AKS: For details on how to install Rancher with Azure Kubernetes Service, including how to install an ingress so that the Rancher server can be accessed, refer to [this page](https://ranchermanager.docs.rancher.com/getting-started/installation-and-upgrade/install-upgrade-on-a-kubernetes-cluster/rancher-on-aks).
+- GKE: For details on how to install Rancher with Google Kubernetes Engine, including how to install an ingress so that the Rancher server can be accessed, refer to [this page](https://ranchermanager.docs.rancher.com/getting-started/installation-and-upgrade/install-upgrade-on-a-kubernetes-cluster/rancher-on-gke).
+
+---
+
+### Cert Manager - Upstream Cluster - Management Cluster
+
+Rancher uses cert-manager to automatically generate and renew TLS certificates for HA deployments of Rancher. When used to deploy Rancher, it gives the option to automatically generate and rotate self-signed or Let’s Encrypt signed certificates. It is recommended to deploy cert manager using helm charts. Cert Manager requires a CDR (CustomResourceDefinition) to be installed before installing Cert manager. This CRD allows users to interact with cert manager directly with kubectl and allows a user to create custom resources. It is possible to force the installation of the CDR while installing Cert Manager using Helm by specifying the option `--set installCRDs=true`. To deploy cert manager using Helm, use the supported Helm repository for cert manager - jetstack Helm repository
+
+### Certificate for Rancher Server
+
+Rancher has four different options for working with SSL certificates:
+- Use self-signed certificates generated by cert-manager.
+- Use certificates from Let’s Encrypt.
+- Use certificates from a public CA.
+- Use certificates from a private CA.
+
+---
+
+### Helm Options for deploying Rancher
+
+When using Helm to deploy Rancher, there are sever option to be set to deploy Rancher as required. For a list of Helm Options, please refer to [this link](https://ranchermanager.docs.rancher.com/getting-started/installation-and-upgrade/installation-references/helm-chart-options) Some of the common options are 
+
+| Option           | Default Value	  | Description       | 
+|:---------------: | :--------------: | :---------------: |
+| <img width=400/> | <img width=400/> | <img width=1400/> |
+| `bootstrapPassword` | " " | `string` - Set the bootstrap password for the first admin user. After logging in, the admin will need to reset their password. A randomly generated bootstrap password is used if this value is not set.|
+| `hostname` | " " | `string` - the Fully Qualified Domain Name for your Rancher Server |
+| `ingress.tls.source` | "rancher" | `string` - Where to get the cert for the ingress. - "rancher, letsEncrypt, secret" |
+| `letsEncrypt.email` | " " | `string` - Your email address |
+| `letsEncrypt.environment` | "production" | `string` - Valid options: "staging, production" |
+| `privateCA` | false | `bool` - Set to true if your cert is signed by a private CA |
+| `global.cattle.psp.enabled` | true | `bool` - select 'false' to disable PSPs for Kubernetes v1.25 and above when using Rancher v2.7.2-v2.7.4. When using Rancher v2.7.5 and above, Rancher attempts to detect if a cluster is running a Kubernetes version where PSPs are not supported, and will default it's usage of PSPs to false if it can determine that PSPs are not supported in the cluster. |
+
+---
+
+## Deployment Best Practices - Tips and Tricks
+
+- Install Rancher on a High-Available Kubernetes Cluster
+  - A high-availability Kubernetes installation, defined as an installation of Rancher on a Kubernetes cluster with at least three nodes, should be used in any production installation of Rancher, as well as any installation deemed "important." Multiple Rancher instances running on multiple nodes ensure high availability that cannot be accomplished with a single node environment.
+- Deploy Rancher on a Dedicated Kubernetes Cluster
+  - For the best performance and security, it is recommended to have a dedicated Kubernetes cluster for the Rancher management server. Running user workloads on this cluster is not advised. Other kubernetes cluster can be provisioned from or imported to Rancher Manager.
+- Deploy Rancher on a Properly Configured Kubernetes Cluster
+  - It's important to follow K8s and etcd best practices when deploying your nodes, including disabling swap, double checking you have full network connectivity between all machines in the cluster, using unique hostname, MAC addresses, and product_uuids for every node, checking that all correct ports are opened, and deploying with ssd backed etcd. More details can be found in the kubernetes docs and etcd's performance op guide.
+- Consideration When Deploying Rancher on RKE Cluster
+  - RKE keeps record of the cluster state in a file called cluster.rkestate. This file is important for the recovery of a cluster and/or the continued maintenance of the cluster through RKE. Because this file contains certificate material, we strongly recommend encrypting this file before backing up. After each run of rke up you should backup the state file.
+- Consideration When Deploying Rancher vSphere
+  - If you are installing Rancher in a vSphere environment, refer to the best practices documented in [this link](https://ranchermanager.docs.rancher.com/reference-guides/best-practices/rancher-server/on-premises-rancher-in-vsphere).
+- Minimize Network Latency
+  - keep the nodes in the dedicated Rancher Manager cluster as close as possible to avoid issues with etcd.
+- Consider Using Node Taints
+  - Node taints keep Rancher Manager-specific workloads from running on control plane nodes. If there is high CPU or memory usage on control plane nodes, node taints make sure control plane nodes focus on only running the control plane and etcd.
+- Run All Nodes in the Cluster in the Same Datacenter
+  - For best performance, run all three of your nodes in the same geographic datacenter. If you are running nodes in the cloud, such as AWS, run each node in a separate Availability Zone. For example, launch node 1 in us-west-2a, node 2 in us-west-2b, and node 3 in us-west-2c.
+- Development and Production Environments Should be Similar
+  - It's strongly recommended to have a "staging" or "pre-production" environment of the Kubernetes cluster that Rancher runs on. This environment should mirror your production environment as closely as possible in terms of software and hardware configuration.
+
+---
+
+## Deploy Rancher
+
+As explained in this page, Rancher support several different deployment options that best fit your needs. These deployment options can be summarizes as:
+- Single Node Kubernetes Cluster [Not Recommended]
+- High-Availability Kubernetes cluster [Recommended]
+- Rancher on EKS Install with the AWS Marketplace
+- Docker Install [For Testing and Demonstration ONLY]
+
+All the above listed deployments can be in an environment with direct internet access, behind an HTTP proxy or in an Air Gapped environment
+
+With respect to certificate, Rancher support the below options:
+- Rancher Deployment with Self-Signed Certificate [Cert Manager is Required]
+- Rancher Deployment with Let's Encrypt Signed Certificate [Cert Manager is Required]
+- Rancher Deployment with Public Certificate Authority [Cert Manager is NOT Required - Cert rotation is managed by user]
+- Rancher Deployment with Private Certificate Authority [Cert Manager is NOT Required - Cert rotation is managed by user]
+
+In this repo we will install Rancher on a two node kubernetes cluster (not recommended - only for demo) that are based on RKE2 and SUSE Linux Enterprise Server 15 SP 5. We will be deploying Rancher in 5 different deployment options. For a step-by-step guide and to follow the deployment process, choose the required option from the list below and click on the dedicated link of the option to be redirected to the option dedicated step-by-step guide page.
+- [Rancher with Self-Signed Certificate](/01-%20Rancher-With-Self-Signed-Cert/) - Direct Internet Access
+- [Rancher with Let's Encrypt Signed Certificate](/02-%20Rancher-with-Lets-Encrypt-Signed-Cert/) - Direct Internet Access
+- [Rancher with Certificate Authority Signed Certificate](/03-%20Rancher-with-CA-Signed-Cert/) - Direct Internet Access + Public Certificate Authority (AWS ACM)
+- [Rancher with Self-Signed Certificate In An AirGapped Environment](/04-%20Rancher-AirGapped/) - No Direct Internet Access
+- [Rancher With Self-Signed Certificate Behind AN HTTP Proxy](/05_%20Rancher-With-HTTP-Proxy/) - No Direct Internet Access
+
+
+
+---
+
 ## References:
 - [Rancher Prime Platform](https://www.rancher.com/products/rancher-platform)
 - [Rancher Documentation - Main Page](https://ranchermanager.docs.rancher.com/)
@@ -127,7 +220,7 @@ Rancher performance depends on etcd in the cluster performance. To ensure optima
 - [Tips For Running Rancher](https://ranchermanager.docs.rancher.com/reference-guides/best-practices/rancher-server/tips-for-running-rancher)
 - [Tunning and Best Practices for Rancher At Scale](https://ranchermanager.docs.rancher.com/reference-guides/best-practices/rancher-server/tuning-and-best-practices-for-rancher-at-scale)
 - [Port Requirements](https://ranchermanager.docs.rancher.com/getting-started/installation-and-upgrade/installation-requirements/port-requirements)
-
+- [Rancher Helm Options](https://ranchermanager.docs.rancher.com/getting-started/installation-and-upgrade/installation-references/helm-chart-options)
 
 
 
