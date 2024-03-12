@@ -209,6 +209,8 @@ If the deployment of Rancher Manager fails, the following tools may help with tr
 - Certificate - `kubectl get/describe cert`
   - Certificate is created to ensure an up to date and signed certificate.
 
+If the above tools did not help, please refer to the troubleshooting cert-manager using the documentation on the cert-manager website: https://cert-manager.io/docs/faq/troubleshooting/
+
 --
 
 **Start using Rancher**
