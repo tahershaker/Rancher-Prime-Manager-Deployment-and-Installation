@@ -201,6 +201,16 @@ Open your web browser and go to https://<rancher-manager-fqdn> and use the passw
 
 ---
 
+If the deployment of Rancher Manager fails, the following tools may help with troubleshooting Let’s Encrypt with cert-manager.
+- CertificateRequest - `kubectl get/describe cr`
+  - Used to request a signed certificate from Let’s Encrypt.
+- Order - `kubectl get/describe order`
+  - Represents an Order with Let’s Encrypt.
+- Certificate - `kubectl get/describe cert`
+  - Certificate is created to ensure an up to date and signed certificate.
+
+--
+
 **Start using Rancher**
 
 **Enjoy** :blush:
