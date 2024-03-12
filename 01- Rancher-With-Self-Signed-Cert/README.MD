@@ -197,14 +197,6 @@ Open your web browser and go to https://<rancher-manager-fqdn> and use the passw
 
 ---
 
-Start using Rancher
-
----
-
-<p align="center">
-    <img src="Images/CheckRancherUI.png">
-</p>
-
----
+**Start using Rancher**
 
 **Enjoy** :blush:
