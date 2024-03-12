@@ -148,9 +148,9 @@ Rancher has four different options for working with SSL certificates:
 
 When using Helm to deploy Rancher, there are sever option to be set to deploy Rancher as required. For a list of Helm Options, please refer to [this link](https://ranchermanager.docs.rancher.com/getting-started/installation-and-upgrade/installation-references/helm-chart-options) Some of the common options are 
 
-| Option           | Default Value	  | Description       | 
-|:---------------: | :--------------: | :---------------: |
-| <img width=400/> | <img width=400/> | <img width=1400/> |
+| Option             | Default Value	  | Description       | 
+|:---------------:   | :--------------: | :---------------: |
+| <img width=400/>   | <img width=400/> | <img width=1400/> |
 | `bootstrapPassword` | " " | `string` - Set the bootstrap password for the first admin user. After logging in, the admin will need to reset their password. A randomly generated bootstrap password is used if this value is not set.|
 | `hostname` | " " | `string` - the Fully Qualified Domain Name for your Rancher Server |
 | `ingress.tls.source` | "rancher" | `string` - Where to get the cert for the ingress. - "rancher, letsEncrypt, secret" |
