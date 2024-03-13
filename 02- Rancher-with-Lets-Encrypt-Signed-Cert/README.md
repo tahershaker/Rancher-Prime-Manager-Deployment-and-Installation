@@ -141,13 +141,13 @@ helm repo update
 # Install Rancher Prime Manager version 2.6.5 with one replica and a bootstrap password of rancher and use a let's Encrypt Signed Cert and force the creation of a dedicated namespace. Note that with Let's Encrypt a working email must be provided
 helm install rancher rancher-prime/rancher \
   --namespace cattle-system \
-  --set hostname=<rancher-manager-fqdn> \
+  --set hostname=rancher-manager.suse-rancher-demo.com \
   --set replicas=1 \
   --version 2.7.5 \
   --create-namespace \
   --set bootstrapPassword=rancher \
   --set ingress.tls.source=letsEncrypt \
-  --set letsEncrypt.email=example@suse.com 
+  --set letsEncrypt.email=taher.shaker@suse.com 
 ```
 
 ---
@@ -178,7 +178,7 @@ kubectl -n cattle-system get deployments
 > Check Rancher Prime Manager UI responsiveness
 
 ```bash
-while true; do curl -kv https://<rancher-manager-fqdn> 2>&1 | grep -q "dynamiclistener-ca"; if [ $? != 0 ]; then echo "Rancher Prime Manager UI is not responsive yet"; sleep 5; continue; fi; break; done; echo "Rancher Prime Manager UI is now responsive, Your Rancher Deployment is Ready";
+while true; do curl -kv https://rancher-manager.suse-rancher-demo.com 2>&1 | grep -q "dynamiclistener-ca"; if [ $? != 0 ]; then echo "Rancher Prime Manager UI is not responsive yet"; sleep 5; continue; fi; break; done; echo "Rancher Prime Manager UI is now responsive, Your Rancher Deployment is Ready";
 ```
 
 ---
